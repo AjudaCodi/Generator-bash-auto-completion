@@ -1,0 +1,23 @@
+command
+	version
+	status
+	opcioArbre
+		branch1
+			fulla0
+			fulla2
+		branch2
+			fulla1
+			fulla3
+	opcioFitxers
+		Paquets
+			<file.txp>
+		Text
+			<file.txt>
+		All
+			<file>
+	rar
+		de
+			collons
+				opcio1
+				opcio2
+				opcio3
