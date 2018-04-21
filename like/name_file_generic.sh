@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# file.sh "Number of argument where is the cursor" Arguments, maximum where is the cursor
+# Not like $# $@ because not count where is the cursor
 
 _generic_name() {
   local arguments_number="${1}"
@@ -128,3 +131,5 @@ _generic_name_rar_de_collons() {
     echo "Usage: name rar de collons | opcio1 opcio2 opcio3 |"; return 0
   fi
 }
+
+_generic_name "$@"
