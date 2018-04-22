@@ -1,5 +1,6 @@
+FLAGS=-Xlint:all
 all: clean
-	javac -g generator/generateCompletion.java
+	javac ${FLAGS} generator/generateCompletion.java
 
 clean:
 	rm -f {Utils,generator,Exception}/*.class

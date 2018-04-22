@@ -31,19 +31,70 @@ public class generateCompletion {
 
 	private generateCompletion(File fileReader) {
 		Parser parser = new Parser(fileReader);
+
+		System.out.println("#!/bin/bash\n");
 		for (NodeInformation<String> i : parser.getValue()) {
-			System.out.print(StringUtils.badJoin("_", i.getPath()) + "\t\t");
-			if (!i.isLeaf()) {
-				System.out.print(StringUtils.badJoin(" ", i.getQueue()) + " ");
-				System.out.print("'" + i.isChildrenLeaf() + "'");
-			}
-			System.out.println();
+			if (i.isLeaf())
+				continue;
+			//understandDebuggin(i);
+			generateOutput(i);
 		}
+		System.out.println("_" + parser.getValue().iterator().next().getPath().getFirst() + " \"$@\"");
+	}
+	private void generateOutput(NodeInformation<String> i) {
+		final String getPath = StringUtils.badJoin("_", i.getPath());
+		final String getPathSpace = StringUtils.badJoin(" ", i.getPath());
+		final String getQueue = creatingQueue(" ", i.getQueue());
+
+		System.out.println(getPath + "() {");
+		System.out.println("  if [ $1 -eq " + i.getPath().size() + " ]; then");
+
+		System.out.println("    echo 'Usage:" + getPathSpace + " |" + getQueue + " |'; return 0");
+
+		System.out.println("  fi");
+
+		if (i.isChildrenLeaf()) {
+			System.out.println("\n  case $2 in");
+			for (String child : i.getQueue()) {
+				if (i.thisChildHaveChildren(child))
+					continue;
+				System.out.println("    ('" + child + "') " + getPath + "_" + child + " $1 ${@:3} ;;" );
+			}
+			System.out.println("    (*) echo 'Usage:" + getPathSpace + " >" + getQueue + " <|'; return 0 ;;");
+			System.out.println("  esac");
+		}
+
+		System.out.println("}\n");
+	}
+
+	private static String creatingQueue(String separator, Iterable<String> values) {
+		StringBuilder out = new StringBuilder();
+		Pattern regexFile = Pattern.compile("<file([^>]*)>");
+
+		for (String i : values) {
+			out.append(separator);
+
+			Matcher m = regexFile.matcher(i);
+			if ( m.find() ) {
+				out.append("' *" + m.group(1) + " '");
+			} else
+			{
+				out.append(i);
+			}
+		}
+		return out.toString();
+	}
+
+	private void understandDebuggin(NodeInformation<String> i) {
+		System.out.print(i.getPath().size() + StringUtils.badJoin("_", i.getPath()) + "\t\t");
+		if (!i.isLeaf()) {
+			System.out.print(StringUtils.badJoin(" ", i.getQueue()) + " ");
+		}
+		System.out.println();
 	}
 
 	private class Parser {
 		private Pattern regexAll;
-		private int numberLine;
 		private NodeTreeQueue<String> value;
 
 		public NodeTreeQueue<String> getValue() {
@@ -53,6 +104,8 @@ public class generateCompletion {
 		private Parser(File nameFile) {
 			regexAll = Pattern.compile("(\\s*)(\\S+)");
 			value = new NodeTreeQueue<String>();
+
+			int numberLine = 0;
 			try {
 				BufferedReader b = new BufferedReader(new FileReader(nameFile));
 				String readLine;
@@ -64,7 +117,7 @@ public class generateCompletion {
 			} catch (IOException ex) {
 				Utils.MessageError("Error: try read file IO Exception.");
 			} catch (AddOutTree ex) {
-				Utils.MessageError("Error: try read file add out tree.");
+				Utils.MessageError("Error: try read file add out tree. Line: " + numberLine);
 			}
 		}
 
